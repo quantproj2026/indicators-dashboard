@@ -1,0 +1,98 @@
+# ==========================================
+# Python Bytecode, Caching, and Precompiled
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# ==========================================
+# Virtual Environments (Dependencies)
+# ==========================================
+.venv/
+venv/
+ENV/
+env/
+target/
+.env/
+.vars/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ==========================================
+# Environment Variables & Secret Keys (Security)
+# ==========================================
+.env
+.venv
+*.env
+*.secrets
+.token
+.credentials/
+*.pem
+*.pkcs12
+*.pfx
+
+# ==========================================
+# Package Distribution & Building
+# ==========================================
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ==========================================
+# Testing and Code Coverage
+# ==========================================
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# ==========================================
+# Jupyter Notebooks (Temporary files)
+# ==========================================
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+divio-scroll-position.txt
+
+# ==========================================
+# IDEs and Text Editors (Metadata)
+# ==========================================
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# PyCharm / IntelliJ
+.idea/
+
+# macOS Finder files
+.DS_Store
+
+# Windows thumbnail caches
+Thumbs.db
