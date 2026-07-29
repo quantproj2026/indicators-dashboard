@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import json
 from functools import lru_cache
 from pathlib import Path
+from typing import Annotated
 
 from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 # <repo>/indicators_dashboard_backend/ -- the directory holding .env and pyproject.toml.
 PACKAGE_ROOT = Path(__file__).resolve().parent
@@ -79,7 +81,13 @@ class Settings(BaseSettings):
 
     # -- HTTP API ------------------------------------------------------------
     api_prefix: str = Field(default="/api/v1")
-    cors_origins: list[str] = Field(
+    # `NoDecode` is load-bearing. Without it pydantic-settings treats a
+    # list-typed field as "complex" and runs `json.loads` on the raw environment
+    # value *inside the env source*, before any validator on this class gets a
+    # look. An ordinary `CORS_ORIGINS=https://app.example.com` would then abort
+    # the process at import time with a JSONDecodeError. NoDecode hands the raw
+    # string to `_split_origins` below instead.
+    cors_origins: Annotated[list[str], NoDecode] = Field(
         default_factory=lambda: [
             "http://localhost:3000",
             "http://127.0.0.1:3000",
@@ -90,13 +98,29 @@ class Settings(BaseSettings):
     @field_validator("cors_origins", mode="before")
     @classmethod
     def _split_origins(cls, value: object) -> object:
-        """Accept ``a,b`` as well as a JSON list so plain .env files work."""
-        if isinstance(value, str):
-            stripped = value.strip()
-            if stripped.startswith("["):
-                return value  # let pydantic parse the JSON form
-            return [origin.strip() for origin in stripped.split(",") if origin.strip()]
-        return value
+        """Accept ``a,b``, a single origin, or a JSON array.
+
+        Because of ``NoDecode`` above, parsing the JSON form is this method's
+        job -- pydantic-settings no longer does it.
+        """
+        if not isinstance(value, str):
+            return value
+
+        stripped = value.strip()
+        if not stripped:
+            return []
+
+        if stripped.startswith("["):
+            try:
+                return json.loads(stripped)
+            except json.JSONDecodeError as exc:
+                raise ValueError(
+                    "CORS_ORIGINS looks like a JSON array but could not be parsed. "
+                    "A comma-separated list is easier and also accepted, e.g. "
+                    "https://app.example.com,https://www.example.com"
+                ) from exc
+
+        return [origin.strip() for origin in stripped.split(",") if origin.strip()]
 
     @field_validator("api_prefix")
     @classmethod
