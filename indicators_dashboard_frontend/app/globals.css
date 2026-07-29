@@ -4,6 +4,29 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ---------------------------------------------------------------------------
+   Indicators Dashboard theme
+
+   A single tonal palette: a cool charcoal/slate base carrying the whole
+   interface, with exactly one accent -- steel blue -- reserved for data. There
+   are no gradients anywhere; every surface is a flat step on the same neutral
+   ramp, and depth comes from hairline borders rather than shadow or hue.
+
+   The accent is the only saturated colour in the product, so it always means
+   "this is data". It was chosen against the real card surfaces:
+
+     dark  #4b93c4 on #191c21 -- OKLCH L 0.63, chroma 0.10, passes 3:1
+     light #1f6f9c on #f7f8f9 -- OKLCH L 0.53, chroma 0.10, passes 3:1
+
+   Both clear the lightness band, the chroma floor, and the contrast gate for
+   chart marks. Charts are deliberately single-series, so no categorical
+   separation is required and the palette never needs a second hue.
+
+   `--positive` / `--negative` are direction cues on change figures only. They
+   are heavily desaturated members of the same tonal family, and direction is
+   always carried by an arrow icon and a sign as well, never by colour alone.
+--------------------------------------------------------------------------- */
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -39,6 +62,15 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+
+  /* Chart chrome and data tokens. */
+  --color-series: var(--series);
+  --color-grid: var(--grid);
+  --color-axis: var(--axis);
+  --color-positive: var(--positive);
+  --color-negative: var(--negative);
+  --color-surface-raised: var(--surface-raised);
+
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -48,83 +80,165 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* Light: the same slate ramp inverted. Cards are pure white so the hairline
+   borders, not shadows, do the separating. */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --background: #f7f8f9;
+  --foreground: #14181c;
+
+  --card: #ffffff;
+  --card-foreground: #14181c;
+  --surface-raised: #ffffff;
+
+  --popover: #ffffff;
+  --popover-foreground: #14181c;
+
+  --primary: #1f6f9c;
+  --primary-foreground: #ffffff;
+
+  --secondary: #eceef1;
+  --secondary-foreground: #2b333c;
+
+  --muted: #eef0f2;
+  --muted-foreground: #5b6570;
+
+  --accent: #e8edf1;
+  --accent-foreground: #1a2229;
+
+  --destructive: #a54b4b;
+
+  --border: rgba(20, 24, 28, 0.1);
+  --input: rgba(20, 24, 28, 0.14);
+  --ring: #1f6f9c;
+
+  /* Data. */
+  --series: #1f6f9c;
+  --grid: #e4e7ea;
+  --axis: #c2c8ce;
+  --positive: #3f7a5c;
+  --negative: #a54b4b;
+
+  --chart-1: #1f6f9c;
+  --chart-2: #4d7d97;
+  --chart-3: #6f8b9c;
+  --chart-4: #92a0ac;
+  --chart-5: #b4bdc5;
+
+  --radius: 0.5rem;
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #14181c;
+  --sidebar-primary: #1f6f9c;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #eef0f2;
+  --sidebar-accent-foreground: #1a2229;
+  --sidebar-border: rgba(20, 24, 28, 0.1);
+  --sidebar-ring: #1f6f9c;
 }
 
+/* Dark: the default. Deep charcoal with a cool cast; four flat surface steps. */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: #101317;
+  --foreground: #e6e9ec;
+
+  --card: #191c21;
+  --card-foreground: #e6e9ec;
+  --surface-raised: #1d2127;
+
+  --popover: #1d2127;
+  --popover-foreground: #e6e9ec;
+
+  --primary: #4b93c4;
+  --primary-foreground: #0d1014;
+
+  --secondary: #21262c;
+  --secondary-foreground: #d5dae0;
+
+  --muted: #1f242a;
+  --muted-foreground: #8d959f;
+
+  --accent: #242a31;
+  --accent-foreground: #e6e9ec;
+
+  --destructive: #c07a7a;
+
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.12);
+  --ring: #4b93c4;
+
+  /* Data. */
+  --series: #4b93c4;
+  --grid: #232931;
+  --axis: #39414a;
+  --positive: #6ba286;
+  --negative: #c07a7a;
+
+  --chart-1: #4b93c4;
+  --chart-2: #4a7d9b;
+  --chart-3: #566d80;
+  --chart-4: #6b7c8a;
+  --chart-5: #8b98a4;
+
+  --sidebar: #131720;
+  --sidebar-foreground: #e6e9ec;
+  --sidebar-primary: #4b93c4;
+  --sidebar-primary-foreground: #0d1014;
+  --sidebar-accent: #21262c;
+  --sidebar-accent-foreground: #e6e9ec;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #4b93c4;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
+  html {
+    @apply font-sans;
+    /* Flat surfaces only -- the base plane never carries an image or gradient. */
+    background-color: var(--background);
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
   body {
     @apply bg-background text-foreground;
   }
-  html {
-    @apply font-sans;
+
+  :focus-visible {
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: color-mix(in oklch, var(--primary) 28%, transparent);
+  }
+
+  /* Thin, tonal scrollbars: part of the chrome, never a highlight. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklch, var(--foreground) 18%, transparent)
+      transparent;
+  }
+}
+
+@layer utilities {
+  /* Columns of figures must align; standalone display numbers must not. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

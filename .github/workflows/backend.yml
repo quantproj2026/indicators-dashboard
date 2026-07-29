@@ -24,16 +24,47 @@ jobs:
       - name: Install Poetry
         run: pipx install poetry
 
+      - name: Cache Poetry environment
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pypoetry
+          key: poetry-${{ runner.os }}-${{ hashFiles('indicators_dashboard_backend/poetry.lock') }}
+
       - name: Install dependencies
-        run: poetry install --no-interaction --no-root
+        run: poetry install --no-interaction
 
       - name: Import check
         run: poetry run python -c "from indicators_dashboard_backend.main import app; print('App imports OK')"
 
-      # Optional: short start + health check (uncomment if you want it)
-      # - name: Quick start check
-      #   run: |
-      #     poetry run uvicorn indicators_dashboard_backend.main:app --host 0.0.0.0 --port 8000 &
-      #     sleep 4
-      #     curl -f http://localhost:8000/health || curl -f http://localhost:8000/docs || exit 1
-      #     kill %1
+      # The suite mocks the Alpha Vantage host, so it needs no key and spends
+      # nothing against the 25-requests-per-day free-tier budget.
+      - name: Tests
+        run: poetry run pytest -q
+
+      - name: OpenAPI schema generates
+        run: |
+          poetry run python -c "
+          from indicators_dashboard_backend.main import app
+          schema = app.openapi()
+          paths = schema['paths']
+          expected = [
+              'real-gdp', 'real-gdp-per-capita', 'treasury-yield',
+              'federal-funds-rate', 'cpi', 'inflation', 'retail-sales',
+              'durables', 'unemployment', 'nonfarm-payroll',
+          ]
+          missing = [s for s in expected if f'/api/v1/indicators/{s}' not in paths]
+          assert not missing, f'missing routes: {missing}'
+          print(f'OpenAPI OK: {len(paths)} paths')
+          "
+
+      - name: Health check against a live server
+        run: |
+          poetry run uvicorn indicators_dashboard_backend.main:app --host 127.0.0.1 --port 8000 &
+          for attempt in $(seq 1 20); do
+            if curl -fsS http://127.0.0.1:8000/health > /dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:8000/health
+          # The catalog contacts no upstream, so it works without an API key.
+          curl -fsS http://127.0.0.1:8000/api/v1/indicators | head -c 200
+          kill %1
