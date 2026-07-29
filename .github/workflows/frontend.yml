@@ -1,0 +1,38 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: indicators_dashboard_frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: indicators_dashboard_frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build (syntax + compile check)
+        run: npm run build
+
+      # Optional fallback if you only have "dev" and no "build" script:
+      # - name: Quick start check
+      #   run: |
+      #     npm run dev &
+      #     sleep 6
+      #     curl -f http://localhost:3000 || exit 1
+      #     kill %1
