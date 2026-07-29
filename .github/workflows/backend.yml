@@ -1,0 +1,39 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: indicators_dashboard_backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install Poetry
+        run: pipx install poetry
+
+      - name: Install dependencies
+        run: poetry install --no-interaction --no-root
+
+      - name: Import check
+        run: poetry run python -c "from indicators_dashboard_backend.main import app; print('App imports OK')"
+
+      # Optional: short start + health check (uncomment if you want it)
+      # - name: Quick start check
+      #   run: |
+      #     poetry run uvicorn indicators_dashboard_backend.main:app --host 0.0.0.0 --port 8000 &
+      #     sleep 4
+      #     curl -f http://localhost:8000/health || curl -f http://localhost:8000/docs || exit 1
+      #     kill %1
