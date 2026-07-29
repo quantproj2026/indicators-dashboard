@@ -86,7 +86,7 @@ class UpstreamThrottle:
             raise
         return self
 
-    async def __aexit__(self, *exc_info: object) -> None:
+    async def __aexit__(self, *_exc_info: object) -> None:
         self._semaphore.release()
 
 
@@ -191,26 +191,39 @@ class AlphaVantageClient:
     def _raise_for_payload_errors(
         self, payload: Mapping[str, Any], params: Mapping[str, str]
     ) -> None:
-        """Translate Alpha Vantage's HTTP-200 error bodies into exceptions."""
+        """Translate Alpha Vantage's HTTP-200 error bodies into exceptions.
+
+        Observations win over prose. Alpha Vantage attaches promotional notes --
+        which mention "premium" and "subscribe", two of our quota markers -- to
+        responses that also carry a full series. Testing the markers before
+        testing for data therefore rejected perfectly good payloads as rate
+        limited, on every indicator, even with a brand-new key. A body that
+        contains observations succeeded, whatever else it says.
+        """
         details = {"parameters": redact(params)}
 
-        if _ERROR_KEY in payload:
-            message = str(payload[_ERROR_KEY])
+        rows = payload.get("data")
+        has_data = isinstance(rows, list) and len(rows) > 0
+
+        for key in (_ERROR_KEY, _NOTE_KEY, _INFORMATION_KEY):
+            if key not in payload:
+                continue
+            message = str(payload[key])
+
+            if has_data:
+                # Informational only: the series is present and usable.
+                logger.info("Alpha Vantage note alongside data: %s", message[:300])
+                continue
+
             if _looks_like_rate_limit(message):
                 raise UpstreamRateLimitError(message, details=details)
-            raise UpstreamInvalidRequestError(
-                f"Alpha Vantage rejected the request: {message}", details=details
-            )
 
-        for key in (_NOTE_KEY, _INFORMATION_KEY):
-            if key in payload:
-                message = str(payload[key])
-                if _looks_like_rate_limit(message):
-                    raise UpstreamRateLimitError(message, details=details)
-                # Informational notes that are not quota-related still mean the
-                # payload carries no series.
-                if "data" not in payload:
-                    raise UpstreamInvalidRequestError(message, details=details)
+            raise UpstreamInvalidRequestError(
+                f"Alpha Vantage rejected the request: {message}"
+                if key == _ERROR_KEY
+                else message,
+                details=details,
+            )
 
     async def _request(self, params: Mapping[str, str]) -> httpx.Response:
         if not self._settings.has_api_key:
