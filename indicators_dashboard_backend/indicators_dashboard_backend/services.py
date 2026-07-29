@@ -328,7 +328,12 @@ class IndicatorService:
         try:
             result = await self._fetch_payload(params, force_refresh=force_refresh)
         except UpstreamError as exc:
-            logger.warning("Overview: %s unavailable (%s)", spec.slug, exc.code)
+            # Include the upstream's own words. Logging only our error code hid
+            # what Alpha Vantage actually said, which made a misclassified
+            # response impossible to diagnose from the deployment logs.
+            logger.warning(
+                "Overview: %s unavailable (%s): %s", spec.slug, exc.code, exc.message
+            )
             from .schemas import ErrorDetail
 
             return IndicatorSnapshotOut(

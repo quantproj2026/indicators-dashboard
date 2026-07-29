@@ -25,6 +25,7 @@ from .cache import TTLCache
 from .catalog import INDICATORS
 from .config import Settings, get_settings
 from .errors import IndicatorNotFoundError, UpstreamError
+from .logging_config import configure_logging
 from .routers import indicators as indicators_router
 from .routers import system as system_router
 from .services import IndicatorService
@@ -218,10 +219,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     return app
 
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)-8s %(name)s: %(message)s",
-)
+configure_logging()
 
 #: Module-level instance for ``uvicorn indicators_dashboard_backend.main:app``.
 app = create_app()
